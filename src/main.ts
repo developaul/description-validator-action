@@ -17,7 +17,7 @@ export async function run(): Promise<void> {
     const pullRequestDescription =
       github.context.payload.pull_request?.body ?? ''
 
-    const pullRequestPatternRegex = new RegExp(pullRequestPattern)
+    const pullRequestPatternRegex = new RegExp(pullRequestPattern, 's')
 
     const issue_number = github.context.payload.pull_request!.number
 
