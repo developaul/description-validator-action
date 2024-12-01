@@ -29942,27 +29942,23 @@ async function run() {
             required: true
         });
         const pullRequestDescription = github.context.payload.pull_request?.body ?? '';
-        // Añadimos logs para debuggear
-        core.debug('Pattern: ' + pullRequestPattern);
-        core.debug('Description: ' + JSON.stringify(pullRequestDescription));
-        core.debug('Description length: ' + pullRequestDescription.length);
-        core.debug('Description bytes: ' +
-            [...pullRequestDescription].map(c => c.charCodeAt(0)).join(','));
         const pullRequestPatternRegex = new RegExp(pullRequestPattern, 's');
         const issue_number = github.context.payload.pull_request?.number;
+        if (!issue_number) {
+            core.setFailed('No se ha encontrado el número de la solicitud de extracción');
+            return;
+        }
         if (!pullRequestPatternRegex.test(pullRequestDescription)) {
-            core.info('La descripción del PR no cumple con el formato requerido. Por favor, revisa el patrón solicitado.');
             await octokit.rest.issues.createComment({
                 ...github.context.repo,
-                issue_number: issue_number,
+                issue_number,
                 body: '❌ La descripción del PR no cumple con el formato requerido. Por favor, revisa el patrón solicitado.'
             });
             return;
         }
-        core.info('La descripción del PR cumple con el formato requerido. ¡Buen trabajo!');
         await octokit.rest.issues.createComment({
             ...github.context.repo,
-            issue_number: issue_number,
+            issue_number,
             body: '✅ La descripción del PR cumple con el formato requerido. ¡Buen trabajo!'
         });
     }
