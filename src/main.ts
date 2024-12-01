@@ -18,10 +18,10 @@ export async function run(): Promise<void> {
       github.context.payload.pull_request?.body ?? ""
 
     // Añadimos logs para debuggear
-    console.log('Pattern:', pullRequestPattern)
-    console.log('Description:', JSON.stringify(pullRequestDescription))
-    console.log('Description length:', pullRequestDescription.length)
-    console.log('Description bytes:', [...pullRequestDescription].map(c => c.charCodeAt(0)))
+    core.debug('Pattern: ' + pullRequestPattern)
+    core.debug('Description: ' + JSON.stringify(pullRequestDescription))
+    core.debug('Description length: ' + pullRequestDescription.length)
+    core.debug('Description bytes: ' + [...pullRequestDescription].map(c => c.charCodeAt(0)).join(','))
 
 
     const pullRequestPatternRegex = new RegExp(pullRequestPattern, 's')
@@ -29,9 +29,7 @@ export async function run(): Promise<void> {
     const issue_number = github.context.payload.pull_request?.number
 
     if (!pullRequestPatternRegex.test(pullRequestDescription)) {
-
-
-      console.log('La descripción del PR no cumple con el formato requerido. Por favor, revisa el patrón solicitado.')
+      core.info('La descripción del PR no cumple con el formato requerido. Por favor, revisa el patrón solicitado.')
 
       await octokit.rest.issues.createComment({
         ...github.context.repo,
@@ -42,7 +40,7 @@ export async function run(): Promise<void> {
       return
     }
 
-    console.log('La descripción del PR cumple con el formato requerido. ¡Buen trabajo!')
+    core.info('La descripción del PR cumple con el formato requerido. ¡Buen trabajo!')
 
     await octokit.rest.issues.createComment({
       ...github.context.repo,
