@@ -2,6 +2,7 @@ name: Continuous Integration
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     branches:
       - main
   push:
@@ -10,6 +11,8 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   test-typescript:
@@ -57,8 +60,5 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
-
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pull_request_pattern: ^(.*Description.*Changes.*Tests.*)$

@@ -1,6 +1,8 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'description-validator-action'
+description:
+  'GitHub Action to validate pull request descriptions against regex patterns,
+  ensuring they comply with your repository templates.'
+author: 'Developaul'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
@@ -9,16 +11,13 @@ branding:
 
 # Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  github_token:
+    description: 'GitHub Token'
     required: true
-    default: '1000'
 
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
-
+  pull_request_pattern:
+    description: 'Pull request pattern to validate against'
+    required: true
 runs:
   using: node20
   main: dist/index.js

@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import * as github from '@actions/github'
 
 /**
  * The main function for the action.
@@ -7,18 +7,42 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const githubToken = core.getInput('github_token', { required: true })
+    const octokit = github.getOctokit(githubToken)
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    const pullRequestPattern = core.getInput('pull_request_pattern', {
+      required: true
+    })
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const pullRequestDescription =
+      github.context.payload.pull_request?.body ?? ''
 
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    const pullRequestPatternRegex = new RegExp(pullRequestPattern, 's')
+
+    const issue_number = github.context.payload.pull_request?.number
+
+    if (!issue_number) {
+      core.setFailed(
+        'No se ha encontrado el número de la solicitud de extracción'
+      )
+      return
+    }
+
+    if (!pullRequestPatternRegex.test(pullRequestDescription)) {
+      await octokit.rest.issues.createComment({
+        ...github.context.repo,
+        issue_number,
+        body: '❌ La descripción del PR no cumple con el formato requerido. Por favor, revisa el patrón solicitado.'
+      })
+
+      return
+    }
+
+    await octokit.rest.issues.createComment({
+      ...github.context.repo,
+      issue_number,
+      body: '✅ La descripción del PR cumple con el formato requerido. ¡Buen trabajo!'
+    })
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
